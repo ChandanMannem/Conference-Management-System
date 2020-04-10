@@ -3,7 +3,6 @@ from .models import address, user_table, Category, conference, conference_itemTa
 
 # Register your models here.
 admin.site.register(address)
-admin.site.register(user_table)
 admin.site.register(Category)
 admin.site.register(conference)
 admin.site.register(conference_itemTable)

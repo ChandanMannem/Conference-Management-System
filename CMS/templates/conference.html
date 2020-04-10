@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static%}
+{% block content %}
+
+    <div class="conference-view-header" style="max-width:100%; background:url({% static 'Images/cream_pixels.png' %})">
+
+        <div class='container' style="max-width:90%;">
+            <!--Row 1-->
+            <div class='row'>
+                <div class='conference-row1-title'>
+                    <h1 class='conference-view-header-title'>Art & Humanities Conference</h1>
+                </div>
+            </div>
+        </div>
+        <hr>
+    </div>
+
+    <div class="container" style="max-width:90%;">
+
+        <!--Row 3-->
+        <div class='row conference-browse-section'>
+            <h2 class="conference-browse-word">Browse Art Conferences..</h2>
+        </div>
+        <!--Row 4-->
+
+        <div class='row'>
+            <div class='col-md-8' >
+           {% for conference in conference_obj %}
+            <div class="conference-card" style="width:100%">
+                <div class=" card conference-summary-block ">
+                    <a href="next page" style="text-decoration: none;">
+                        <div class="card-body">
+                            <div class="conference-header">
+                                <div class="conference-short-name card-subtitle mb-2 text-muted">{{conference.name}}</div>
+                            </div>
+                            <h3 class="conference-title card-title"> {{conference.description}}</h3>
+                            <div class="conference-info-wrap">
+                                <div class="conference-info card-text">
+                                    {{conference.about}}
+                                </div>
+                            </div>
+                            <div class="conference-summary-block--research-interest no-floated">
+                                <div class="interest-widget-container small">
+                                    <div class="interest-widget-item category" title="Humanities">
+                                        <h3>
+                                            Arts &amp; Humanities > Art
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="conference-footer">
+                        <a href="/c/international-conference-on-process-engineering-and-advanced-materials-2020/14095" style="text-decoration: none;">
+                            <div class="conference-date location"><i class="fas fa-map-marker-alt"></i> {{conference.location}}</div>
+                            <div class="conference-date"><i class="far fa-calendar-alt"></i> {{conference.conf_start_date|date:"d"}} - {{conference.conf_end_date|date:"d M y"}}</div>
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+            <div class='col-md-3 filter'>
+                <div class="filters">
+                    <div class="filters--list">
+                        <div class="search-filters--list-title">Sort By</div>
+                        <ul class="search-filters--list-items">
+                            <li>
+                                <a class="is-selected" href="/engineering/chemical-conferences?order_by=alphabetical">Name</a>
+                            </li>
+                            <li>
+                                <a href="/engineering/chemical-conferences?order_by=future_submission_deadline&amp;submission_deadline_start_date=2020-04-04">Submission Deadline</a>
+                            </li>
+                            <li>
+                                <a href="/engineering/chemical-conferences?order_by=recently_added">Recently Added</a>
+                            </li>
+                            <li>
+                                <a href="/engineering/chemical-conferences?order_by=conference_start_date">Happening Soon</a>
+                            </li>
+                        </ul>
+                        <div class="search-filters--list-title">Other Categories</div>
+                        <ul class="search-filters--list-items">
+                            <li>
+                                <a class="" href="/engineering/architecture-and-civil-conferences">Architecture/Civil</a>
+                            </li>
+                            <li>
+                                <a class="is-selected" href="/engineering/chemical-conferences">Chemical</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/electrical-and-electronic-conferences">Electrical/Electronic</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/environmental-conferences">Environmental</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/material-and-mineral-conferences">Material/Mineral</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/mechanical-and-industrial-conferences">Mechanical/Industrial</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/military-and-defense-conferences">Military/Defense</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/oil-and-gas-conferences">Oil/Gas</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/renewable-energy-and-nuclear-conferences">Renewable Energy/Nuclear</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/transportation-conferences">Transportation</a>
+                            </li>
+                            <li>
+                                <a class="" href="/engineering/other-conferences">Other Engineering</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
