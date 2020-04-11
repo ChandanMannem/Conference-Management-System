@@ -34,7 +34,7 @@ class conference(models.Model):
     about                       = models.TextField()                                    # About Conference
     conf_Submission_date        = models.DateField(blank= False)                        # Conference Abstract Submission Date
     conf_start_date             = models.DateField(blank= False)                        # Conference Start Date
-    conf_end_date               = models.DateField(blank= False)                        # Conference End Date
+    conf_end_date               = models.DateField(blank= True)                        # Conference End Date
 
 
 class conference_itemTable(models.Model):
@@ -49,7 +49,7 @@ class conference_itemTable(models.Model):
         ('7', 'Paper Submitted')
     ]
     paper_id        = models.AutoField(primary_key=True)                                    # Paper Id
-    user_id         = models.ForeignKey(User, on_delete=models.CASCADE)               # Author Id
+    user_id         = models.ForeignKey(User, on_delete=models.CASCADE)                     # Author Id
     conf_id         = models.ForeignKey(conference, on_delete=models.CASCADE)               # Conference Id
     status          = models.CharField(max_length=1, choices=STATUS_CHOICES, default='1')   # Conference Status
     reviewer1_id    = models.IntegerField(blank=True)                                       # Reviewer1 ID
@@ -58,11 +58,13 @@ class conference_itemTable(models.Model):
     reviewer2_status= models.CharField(max_length=20, blank=True)                           # Reviewer2 Status {Accept/Reject}
     description     = models.TextField()                                                    # Author's Description
     pdf_link        = models.CharField(max_length=50,blank=True)                            # PDF Link
+    entry_date      = models.DateField(blank= True)                                        # Submitted date
 
 class skill(models.Model):
     skill_id        = models.AutoField(primary_key=True)                                # Skill ID
-    skill_name      = models.CharField(max_length= 50)                                  # Skill Name
-    user_id         = models.ForeignKey(User, on_delete=models.CASCADE)           # User ID
+    user_name      = models.CharField(max_length= 50)                                   # Skill Name
+    user_id         = models.ForeignKey(User, on_delete=models.CASCADE)                 # User ID
+    skill_category  = models.IntegerField(blank=True)                                   # Skill Match
 
 class comment(models.Model):
     comment_id = models.AutoField(primary_key=True)                                     # Comment ID

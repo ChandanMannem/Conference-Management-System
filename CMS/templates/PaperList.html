@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- Bootstrap core CSS -->\
+    <link rel="stylesheet" src="{% static  'CSS/all.css' %}">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- FooTable Bootstrap CSS -->
+    <link rel="stylesheet" src="{% static  'CSS/footable.bootstrap.min.css' %}">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css"
+        integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
+
+    <style>
+        .row1-title {
+            margin-top: 30px;
+        }
+
+        .view-header-shortname {
+            display: block;
+            margin: 0;
+            padding-bottom: 0.5rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            font-size: 26px;
+            color: #b2b2b2;
+        }
+
+        .view-header-title {
+            width: 90%;
+            margin: 0;
+            font-size: 27px;
+            line-height: 2.2rem;
+            color: #525252;
+            font-weight: 500;
+        }
+
+        .view-header-datum {
+            font-family: "Open Sans", Verdana, sans-serif;
+            color: #555455;
+        }
+
+        .view-header {
+            position: relative;
+            background: url(file:///C:/Users/chand/Desktop/SSDI%20Project/cream_pixels.png) center;
+            width: 100%;
+            height: 100%;
+        }
+
+        h2 {
+            color: #525252;
+            font-weight: 600;
+            font-size: 1.6rem;
+            line-height: 2.4rem;
+        }
+
+        .table tbody tr td {
+            vertical-align: middle;
+        }
+
+        .connect-page {
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="view-header" style="max-width:100%">
+        <div class='container' style="max-width:90%;">
+            <!--Row 1-->
+            <div class='row'>
+                <div class='row1-title'>
+                    <h1 class='view-header-shortname'>{{ConferenceName}}</h1>
+                    <h2 class='view-header-title'>{{ConferenceDescription}}</h2>
+                </div>
+            </div>
+        </div>
+        <hr>
+    </div>
+
+
+    <div class="container">
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th data-breakpoints="xs sm">Paper ID</th>
+                    <th data-breakpoints="xs sm">Author ID</th>
+                    <th data-breakpoints="xs sm">Author Name</th>
+                    <th data-breakpoints="xs sm">Status</th>
+                    <th data-breakpoints="xs sm">Submission Date</th>
+                    <th data-breakpoints="xs sm">Assigned Reviewer</th>
+                    <th data-breakpoints="xs sm">Action</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for list in paperlist %}
+                <tr id={{list.paper_id}}>
+                    <td>{{list.paper_id}}</td>
+                    <td>{{list.user_id}}</td>
+                    <td>{{list.name}}</td>
+                    <td>{{list.status}}</td>
+                    {% if list.action %}
+                    <td>{{list.entry_date|date:"d"}} - {{list.entry_date|date:"d, M y"}}</td>
+                    <td> <select id="select-state" class="select-state" placeholder="Select two reviewers" onfocusout="addReviewer()">
+                            <option value="">Select two reviewers</option>
+                            {% for index in reviewer_list %}
+                            <option value={{index.skill_id}}>{{index.user_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="select-status1" class="select-status" placeholder="Select Status" onchange="postAction()">
+                            <option value="None">None</option>
+                            <option value="Accept">Accept</option>
+                            <option value="Reject">Reject</option>
+                        </select>
+                    </td>
+                    {% endif %}
+                    <td> <a href= {{list.link}} class="connect-page"
+                            target="blank"><i class="fas fa-chevron-circle-right" id="row1_button"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div> <!-- /container -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"
+        integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="docs/js/ie10-viewport-bug-workaround.js"></script>
+    <!-- Add in any FooTable dependencies we may need -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+    <!-- Add in FooTable itself -->
+
+    <script src="{% static 'JS/footable.js' %}"> </script>
+    <script src="{% static 'JS/all.js' %}"> </script>
+    <script src="{% static 'JS/selectize.js' %}"> </script>
+    <script src="{% static 'JS/sample.js' %}"> </script>
+
+
+    <script>
+        jQuery(function ($) {
+            $('.table').footable({
+                "paging": {
+                    "enabled": true
+                },
+                "filtering": {
+                    "enabled": true
+                },
+                "sorting": {
+                    "enabled": true
+                }
+            });
+            $(document).ready(function () {
+                $('.select-state').selectize({
+                    maxItems: 2
+                });
+
+                $('.select-status').selectize({
+                    create: true,
+                    sortField: 'text'
+                });
+            });
+
+        });
+
+        function addReviewer() {
+          alert("Input field lost focus.");
+        }
+        function postAction() {
+          var x = document.getElementById("mySelect").value;
+        }
+    </script>
+</body>
+
+</html>

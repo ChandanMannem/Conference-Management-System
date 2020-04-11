@@ -12,37 +12,159 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
+import datetime
+from django.db.models import Q
+from django.core.files.storage import FileSystemStorage
 
 
 # Create your views here.
-def paper_view_service(request):
-    conference_itemTable_obj = conference_itemTable.objects.get(paper_id=1)
-    conference_obj = conference.objects.get(conf_id=conference_itemTable_obj.conf_id_id)
+def paper_view_service(request, paperId):
+    if request.user.is_authenticated:
+        conference_itemTable_obj    = conference_itemTable.objects.get( paper_id = 1)
+        conference_obj              = conference.objects.get(conf_id = conference_itemTable_obj.conf_id_id )
+        address_obj                 = address.objects.get(address_id = conference_obj.conf_loc_id_id)
+        category_obj                = Category.objects.get( main_category = 1, sub_category = 1 )
+
+        usergrp_obj = Group.objects.get(id=request.user.id)
+        # usergrp_obj = auth_user_groups.object.get(user_id=request.user.id)
+        if usergrp_obj.group_id == 3:           # Author
+            ResubmitButton = True
+            ActionButton   = False
+            R1_Box         = True
+            R2_Box         = True
+        elif usergrp_obj.group_id == 2:         # Reviewer
+            ResubmitButton = False
+            ActionButton   = True
+            R1_Box         = True
+            R2_Box         = False
+        else:                                   # Chairperson
+            ResubmitButton = False
+            ActionButton   = False
+            R1_Box         = True
+            R2_Box         = True
+
+
+        days = conference_obj.conf_start_date - datetime.datetime.now().date()
+        DaysDesc = ' '
+        if days >= 0:
+            DaysDesc = days + 'days until the conference begins'
+        else:
+            DaysDesc = 'This conference is ended'
+
+        return render(request, 'PaperView.html', {
+            'ConferenceName'        : conference_obj.name,
+            'ConferenceDescription' : conference_obj.description,
+            'City'                  : address_obj.city,
+            'Country'               : address_obj.country,
+            'ConferenceAbout'       : conference_obj.about,
+            'Status'                : conference_itemTable_obj.status,
+            'MainCategory'          : category_obj.main_category_desc,
+            'SubCategory'           : category_obj.sub_category_desc,
+            'conf_start_date'       : conference_obj.conf_start_date,
+            'conf_end_date'         : conference_obj.conf_end_date,
+            'DaysDesc'              : DaysDesc,
+            'ResubmitButton'        : ResubmitButton,
+            'ActionButton'          : ActionButton,
+            'R1_Box'                : R1_Box,
+            'R2_Box'                : R2_Box
+        })
+    else:
+        return HttpResponse(" Page not found !!!!")
+
+def conf_view(request, confId):
+
+    if request.method == 'POST':
+        uploaded_file= request.FILES['file']
+        fs = FileSystemStorage()
+        name = fs.save(uploaded_file.name, uploaded_file)
+        url = fs.url(name)
+
+    conference_obj = conference.objects.get(conf_id=confId)
     address_obj = address.objects.get(address_id=conference_obj.conf_loc_id_id)
     category_obj = Category.objects.get(main_category=1, sub_category=1)
 
-    print('****************************')
-    print(conference_obj.name)
-    print(conference_obj.description)
-    print(address_obj.city)
-    print(address_obj.country)
-    print(conference_obj.about)
-    print(conference_itemTable_obj.status)
-    print(conference_obj.main_category)
-    print(conference_obj.sub_category)
-    print(category_obj.main_category)
-    print(category_obj.sub_category)
+    days = conference_obj.conf_start_date - datetime.datetime.now().date()
+    DaysDesc = ' '
+    if days >= 0:
+        DaysDesc = days + 'days until the conference begins'
+    else:
+        DaysDesc = 'This conference is ended'
 
-    return render(request, 'PaperView.html', {
-        'ConferenceName': conference_obj.name,
-        'ConferenceDescription': conference_obj.description,
-        'City': address_obj.city,
-        'Country': address_obj.country,
-        'ConferenceAbout': conference_obj.about,
-        'Status': conference_itemTable_obj.status,
-        'MainCategory': category_obj.main_category_desc,
-        'SubCategory': category_obj.sub_category_desc,
-    })
+
+    if request.user.is_authenticated:
+
+        # usergrp_obj = auth_user_groups.object.get(user_id=request.user.id)
+        usergrp_obj = Group.objects.get(id=request.user.id)
+        button = False
+        if usergrp_obj.group_id == 3:           # Author
+            button = True
+        else:
+            button = False
+
+        return render(request, 'ConferenceDescription.html',{
+            'ConferenceName'        : conference_obj.name,
+            'ConferenceDescription' : conference_obj.description,
+            'City'                  : address_obj.city,
+            'Country'               : address_obj.country,
+            'ConferenceAbout'       : conference_obj.about,
+            'MainCategory'          : category_obj.main_category_desc,
+            'SubCategory'           : category_obj.sub_category_desc,
+            'conf_start_date'       : conference_obj.conf_start_date,
+            'conf_end_date'         : conference_obj.conf_end_date,
+            'DaysDesc'              : DaysDesc,
+            'buttonEnable'          : button,
+            'sub_date'              : conference_obj.conf_Submission_date,
+            'acceptance_date'       : conference_obj.conf_Submission_date - 60
+        })
+    else:
+        button = False
+        return render(request, 'ConferenceDescription.html', {
+            'ConferenceName': conference_obj.name,
+            'ConferenceDescription': conference_obj.description,
+            'City': address_obj.city,
+            'Country': address_obj.country,
+            'ConferenceAbout': conference_obj.about,
+            'MainCategory': category_obj.main_category_desc,
+            'SubCategory': category_obj.sub_category_desc,
+            'conf_start_date': conference_obj.conf_start_date,
+            'conf_end_date': conference_obj.conf_end_date,
+            'DaysDesc': DaysDesc,
+            'buttonEnable': button,
+            'sub_date': conference_obj.conf_Submission_date,
+            'acceptance_date': conference_obj.conf_Submission_date - 60
+        })
+
+def paper_list(request, confId):
+
+    # usergrp_obj    = auth_user_groups.object.get(user_id=request.user.id)
+    usergrp_obj = Group.objects.get(id=request.user.id)
+    if usergrp_obj.group_id == 1 | usergrp_obj.group_id == 2:
+        conference_obj = conference.objects.get(conf_id=confId)
+        skill_obj      = skill.objects.get( skill_category = conference_obj.main_category )
+        action = False
+        if usergrp_obj.group_id == 1:            # Chairperson
+            conference_itemTable_obj = conference_itemTable.objects.get( conf_id_id  = confId )
+            action = True
+        elif usergrp_obj.group_id == 2:          # Reviewer
+            conference_itemTable_obj = conference_itemTable.objects.get( Q(conf_id_id  = confId), Q(reviewer1_id = request.user.id) | Q(reviewer2_id = request.user.id) )
+
+        paperlist = {}
+
+        for item in conference_itemTable_obj:
+            paperlist['paper_id'] = item.paper_id
+            paperlist['user_id']  = item.user_id
+            paperlist['name']     = User.get_full_name()
+            paperlist['status']   = item.status
+            paperlist['entry_date'] = item.entry_date
+            paperlist['action']     = action
+            paperlist['link']       ='cms/paperview/' + item.paper_id
+
+        return render(request, 'ConferenceDescription.html', {
+            'ConferenceName': conference_obj.name,
+            'ConferenceDescription': conference_obj.description,
+            'paperlist':paperlist,
+            'reviewer_list': skill_obj
+        })
 
 
 def conference_view(request, user_name=None):
