@@ -8,7 +8,11 @@
             <!--Row 1-->
             <div class='row'>
                 <div class='conference-row1-title'>
-                    <h1 class='conference-view-header-title'>Art & Humanities Conference</h1>
+                    {% if request.GET.category %}
+                    <h1 class='conference-view-header-title'>{{category.main_category_desc}} Conferences</h1>
+                      {% else %}
+                     <h1 class='conference-view-header-title'> Conferences</h1>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -19,7 +23,11 @@
 
         <!--Row 3-->
         <div class='row conference-browse-section'>
-            <h2 class="conference-browse-word">Browse Art Conferences..</h2>
+            {% if request.GET.category %}
+            <h2 class="conference-browse-word">Browse {{category.main_category_desc}} Conferences..</h2>
+            {% else %}
+            <h2 class="conference-browse-word">Browse Conferences..</h2>
+            {% endif %}
         </div>
         <!--Row 4-->
 
@@ -28,7 +36,7 @@
            {% for conference in conference_obj %}
             <div class="conference-card" style="width:100%">
                 <div class=" card conference-summary-block ">
-                    <a href="next page" style="text-decoration: none;">
+                    <a href="" style="text-decoration: none;">
                         <div class="card-body">
                             <div class="conference-header">
                                 <div class="conference-short-name card-subtitle mb-2 text-muted">{{conference.name}}</div>
@@ -43,7 +51,7 @@
                                 <div class="interest-widget-container small">
                                     <div class="interest-widget-item category" title="Humanities">
                                         <h3>
-                                            Arts &amp; Humanities > Art
+                                            {{ conference.parent_category }} > {{ conference.child_category }}
                                         </h3>
                                     </div>
                                 </div>
@@ -64,56 +72,13 @@
             <div class='col-md-3 filter'>
                 <div class="filters">
                     <div class="filters--list">
-                        <div class="search-filters--list-title">Sort By</div>
+                        <div class="search-filters--list-title">Categories</div>
                         <ul class="search-filters--list-items">
+                            {% for main_category in main_category_list %}
                             <li>
-                                <a class="is-selected" href="/engineering/chemical-conferences?order_by=alphabetical">Name</a>
+                                <a class="{{main_category.css}}" href="?category={{main_category.main_category}}">{{main_category.main_category_desc}}</a>
                             </li>
-                            <li>
-                                <a href="/engineering/chemical-conferences?order_by=future_submission_deadline&amp;submission_deadline_start_date=2020-04-04">Submission Deadline</a>
-                            </li>
-                            <li>
-                                <a href="/engineering/chemical-conferences?order_by=recently_added">Recently Added</a>
-                            </li>
-                            <li>
-                                <a href="/engineering/chemical-conferences?order_by=conference_start_date">Happening Soon</a>
-                            </li>
-                        </ul>
-                        <div class="search-filters--list-title">Other Categories</div>
-                        <ul class="search-filters--list-items">
-                            <li>
-                                <a class="" href="/engineering/architecture-and-civil-conferences">Architecture/Civil</a>
-                            </li>
-                            <li>
-                                <a class="is-selected" href="/engineering/chemical-conferences">Chemical</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/electrical-and-electronic-conferences">Electrical/Electronic</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/environmental-conferences">Environmental</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/material-and-mineral-conferences">Material/Mineral</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/mechanical-and-industrial-conferences">Mechanical/Industrial</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/military-and-defense-conferences">Military/Defense</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/oil-and-gas-conferences">Oil/Gas</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/renewable-energy-and-nuclear-conferences">Renewable Energy/Nuclear</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/transportation-conferences">Transportation</a>
-                            </li>
-                            <li>
-                                <a class="" href="/engineering/other-conferences">Other Engineering</a>
-                            </li>
+                            {% endfor %}
                         </ul>
                     </div>
                 </div>

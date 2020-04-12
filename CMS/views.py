@@ -167,16 +167,60 @@ def paper_list(request, confId):
         })
 
 
-def conference_view(request, user_name=None):
-    if (user_name==None):
-        conference_obj = conference.objects.all()
-        for conferences in conference_obj:
-            address_list = address.objects.annotate(location= Concat('city', V(','), 'country')).get(address_id=conferences.conf_loc_id_id)
-            conferences.location = address_list.location
-    # else if(user_name!=None):
-    #     conference_obj = conference.objects.get()
-    # category_obj = Category.objects.get(main_category=1, sub_category=1)
-    return render(request, 'conference.html',{'conference_obj':conference_obj})
+
+def conferences_view(request):
+    category=None
+    category_query_param = request.GET.get('category')
+    category_obj = Category.objects.all()
+    conference_obj = conference.objects.all()
+    main_category_list = category_obj.distinct('main_category')
+    if category_query_param:
+        conference_obj = conference_obj.filter(main_category = category_query_param)
+        category = Category.objects.distinct('main_category').get(main_category=category_query_param)
+        for main_category in main_category_list:
+            if main_category.main_category == category_query_param:
+                main_category.css = 'is-selected'
+            else:
+                main_category.css=''
+                # main_category_list[category].css = 'isSelected'
+    for conferences in conference_obj:
+        address_list = address.objects.annotate(location= Concat('city', V(','), 'country')).get(address_id=conferences.conf_loc_id_id)
+        conferences.location = address_list.location
+        category_list = category_obj.filter(main_category=conferences.main_category,sub_category=conferences.sub_category).first()
+        conferences.parent_category = category_list.main_category_desc
+        conferences.child_category = category_list.sub_category_desc
+
+    return render(request, 'conference.html',{'conference_obj':conference_obj,
+                                              'category':category,
+                                              'main_category_list':main_category_list,'url':'conferences'})
+
+def user_conferences(request):
+    user = User.objects.get(id=request.user.id)
+    print(request.user.is_authenticated)
+    if request.user.is_authenticated:
+        category = None
+        category_query_param = request.GET.get('category')
+        category_obj = Category.objects.all()
+        if user.groups.filter(name = 'Chairperson').exists():
+            conference_obj = conference.objects.get(conf_ownerId=id)
+        elif user.groups.filter(name='Reviewer').exists():
+            conference_obj_item = conference_itemTable.objects.filter(Q(reviewer1_id=id) | Q(reviewer2_id=id))
+            # conference_obj = conference.objects.filter(conf_)
+            # for conference_item in conference_obj_item:
+            print(conference_obj_item)
+            # conference_obj = conference.objects.get(conf_id=conference_obj_item.conf_id_id)
+        elif user.groups.filter(name='Author').exists():
+            conference_obj = conference.objects.get(conf_ownerId=id)
+        else:
+            conference_obj = conference.objects.get(conf_ownerId=id)
+
+    else:
+        return redirect('error')
+    return render(request, 'conference.html')
+
+def error(request):
+    return render(request,'error.html')
+
 
 def signup(request):
     if request.method == 'POST':
@@ -191,19 +235,6 @@ def signup(request):
     return render(request, 'registration/signup.html', {
         'form': form
     })
-
-
-def login_redirect(request):
-    if request.user.is_authenticated():
-        user_groups = request.user.groups.values_list('name', flat=True)
-        if request.user.is_superuser:
-            return HttpResponseRedirect(reverse("admin"))
-        elif ("chairperson" or "reviewer" or "author") in user_groups:
-            return HttpResponseRedirect(reverse("conferences"))
-        elif "reviewer" in user_groups:
-            return HttpResponseRedirect(reverse("student_dashboard"))
-        elif "" in user_groups:
-            return HttpResponseRedirect(reverse("student_dashboard"))
 
 def Create_data(request):
 
