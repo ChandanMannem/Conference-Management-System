@@ -452,8 +452,8 @@ def conferences_view(request, past_conferences=None, category=None):
         if category is not None:
             conference_obj = conference.objects.filter(conf_start_date__lt=datetime.datetime.now())
             category_conferences_obj = category_conferences(category, order_by, conference_obj)
-            conference_obj = category_conferences_obj.conference_obj
-            category = category_conferences_obj.category
+            conference_obj = category_conferences_obj['conference_obj']
+            category = category_conferences_obj['category']
         else:
             if order_by is not None:
                 conference_obj = conference.objects.filter(conf_start_date__lt=datetime.datetime.now())
