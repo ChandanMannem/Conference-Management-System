@@ -1,42 +1,40 @@
-{% extends 'base.html' %}
-{% load static%}
-{% block content %}
+{% extends 'base.html' %} {% load static%} {% block content %}
 
-    <div class="conference-view-header" style="max-width:100%; background:url({% static 'Images/cream_pixels.png' %})">
+<div class="conference-view-header" style="max-width:100%; background:url({% static 'Images/cream_pixels.png' %})">
 
-        <div class='container' style="max-width:90%;">
-            <!--Row 1-->
-            <div class='row'>
-                <div class='conference-row1-title'>
-                    {% if request.GET.category %}
-                    <h1 class='conference-view-header-title'>{{category.main_category_desc}} Conferences</h1>
-                      {% else %}
-                     <h1 class='conference-view-header-title'> Conferences</h1>
-                    {% endif %}
-                </div>
+    <div class='container' style="max-width:90%;">
+        <!--Row 1-->
+        <div class='row'>
+            <div class='conference-row1-title'>
+                {% if category %}
+                <h1 class='conference-view-header-title'>{{category.main_category_desc}} Conferences</h1>
+                {% else %}
+                <h1 class='conference-view-header-title'> Conferences</h1>
+                {% endif %}
             </div>
         </div>
-        <hr>
     </div>
+    <hr>
+</div>
 
-    <div class="container" style="max-width:90%;">
+<div class="container" style="max-width:90%;">
 
-        <!--Row 3-->
-        <div class='row conference-browse-section'>
-            {% if request.GET.category %}
-            <h2 class="conference-browse-word">Browse {{category.main_category_desc}} Conferences..</h2>
-            {% else %}
-            <h2 class="conference-browse-word">Browse Conferences..</h2>
-            {% endif %}
-        </div>
-        <!--Row 4-->
+    <!--Row 3-->
+    <div class='row conference-browse-section'>
+        {% if category %}
+        <h2 class="conference-browse-word">Browse {{category.main_category_desc}} Conferences..</h2>
+        {% else %}
+        <h2 class="conference-browse-word">Browse Conferences..</h2>
+        {% endif %}
+    </div>
+    <!--Row 4-->
 
-        <div class='row'>
-            <div class='col-md-8' >
-           {% for conference in conference_obj %}
+    <div class='row'>
+        <div class='col-md-8'>
+            {% for conference in conference_obj %}
             <div class="conference-card" style="width:100%">
                 <div class=" card conference-summary-block ">
-                     <a href="/cms/paperlist/{{conference.conf_id}}" style="text-decoration: none;">
+                    <a href=" {% if user_grp == 1 %}/cms/paperlist/{{conference.conf_id}}{% elif user_grp == 3 %}/cms/conf_view/{{conference.conf_id}}{% endif %}" style="text-decoration: none;">
                         <div class="card-body">
                             <div class="conference-header">
                                 <div class="conference-short-name card-subtitle mb-2 text-muted">{{conference.name}}</div>
@@ -59,7 +57,7 @@
                         </div>
                     </a>
                     <div class="conference-footer">
-                        <a href="/c/international-conference-on-process-engineering-and-advanced-materials-2020/14095" style="text-decoration: none;">
+                        <a href="/cms/paperlist/{{conference.conf_id}}" style="text-decoration: none;">
                             <div class="conference-date location"><i class="fas fa-map-marker-alt"></i> {{conference.location}}</div>
                             <div class="conference-date"><i class="far fa-calendar-alt"></i> {{conference.conf_start_date|date:"d"}} - {{conference.conf_end_date|date:"d M y"}}</div>
                         </a>
@@ -68,23 +66,41 @@
                 </div>
             </div>
             {% endfor %}
-            </div>
-            <div class='col-md-3 filter'>
-                <div class="filters">
-                    <div class="filters--list">
-                        <div class="search-filters--list-title">Categories</div>
-                        <ul class="search-filters--list-items">
-                            {% for main_category in main_category_list %}
-                            <li>
-                                <a class="{{main_category.css}}" href="?category={{main_category.main_category}}">{{main_category.main_category_desc}}</a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
+        </div>
+        <div class='col-md-3 filter'>
+            <div class="filters">
+                <div class="filters--list">
+                    <div class="search-filters--list-title">Sort By</div>
+                    <ul class="search-filters--list-items">
+                        <li>
+                            <a class="{% if request.GET.order_by == 'alphabetical' %}is-selected{% endif %}" href="?order_by=alphabetical">Name</a>
+                        </li>
+                        <li>
+                            <a class="{% if request.GET.order_by == 'submission_deadline' %}is-selected{% endif %}" href="?order_by=submission_deadline">Submission Deadline</a>
+                        </li>
+                        <li>
+                            <a class="{% if request.GET.order_by == 'conference_start_date' %}is-selected{% endif %}" href="?order_by=conference_start_date">Happening Soon</a>
+                        </li>
+                    </ul>
+                    <div class="search-filters--list-title">Categories</div>
+                    <ul class="search-filters--list-items">
+                        {% for main_category in main_category_list %}
+                        <li>
+                            <a class="{% if category.main_category == main_category.main_category %}is-selected{% endif %}" href="{{main_category.main_category}}">{{main_category.main_category_desc}}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="search-filters--list-title">Past Conferences</div>
+                    <ul class="search-filters--list-items">
+                        <li>
+                            <a class="{% if past_conferences == 'past_conferences' %}is-selected{% endif %}" href="past_conferences">Past conferences</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 
 {% endblock %}

@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import CharField, Value as V
+from django.contrib.auth import login
 
 from .models import address,Category, conference, conference_itemTable, skill, comment
 from django.shortcuts import render, redirect
@@ -221,62 +222,144 @@ def paper_list(request, confId):
         return redirect('error')
 
 
-
-def conferences_view(request):
-    category=None
-    category_query_param = request.GET.get('category')
+def conferences_view(request, past_conferences=None, category=None):
+    order_by = request.GET.get('order_by')
     category_obj = Category.objects.all()
-    conference_obj = conference.objects.all()
     main_category_list = category_obj.distinct('main_category')
-    if category_query_param:
-        conference_obj = conference_obj.filter(main_category = category_query_param)
-        category = Category.objects.distinct('main_category').get(main_category=category_query_param)
-        for main_category in main_category_list:
-            if main_category.main_category == category_query_param:
-                main_category.css = 'is-selected'
-            else:
-                main_category.css=''
-                # main_category_list[category].css = 'isSelected'
+    if past_conferences is None:
+        conference_obj = conference.objects.filter(conf_start_date__gte=datetime.datetime.now())
+        if order_by is not None:
+            conference_obj = order_conferences(order_by, conference_obj)
+        if category is not None:
+            category_conferences_obj = category_conferences(category, order_by, conference_obj)
+            conference_obj = category_conferences_obj['conference_obj']
+            category = category_conferences_obj['category']
+    else:
+        conference_obj = conference.objects.filter(conf_start_date__lt=datetime.datetime.now())
+        if category is not None:
+            conference_obj = conference.objects.filter(conf_start_date__lt=datetime.datetime.now())
+            category_conferences_obj = category_conferences(category, order_by, conference_obj)
+            conference_obj = category_conferences_obj.conference_obj
+            category = category_conferences_obj.category
+        else:
+            if order_by is not None:
+                conference_obj = conference.objects.filter(conf_start_date__lt=datetime.datetime.now())
+                conference_obj = order_conferences(order_by, conference_obj)
     for conferences in conference_obj:
-        address_list = address.objects.annotate(location= Concat('city', V(','), 'country')).get(address_id=conferences.conf_loc_id_id)
+        address_list = address.objects.annotate(location=Concat('city', V(','), 'country')).get(
+            address_id=conferences.conf_loc_id_id)
         conferences.location = address_list.location
-        category_list = category_obj.filter(main_category=conferences.main_category,sub_category=conferences.sub_category).first()
+        category_list = category_obj.filter(main_category=conferences.main_category,
+                                            sub_category=conferences.sub_category).first()
         conferences.parent_category = category_list.main_category_desc
         conferences.child_category = category_list.sub_category_desc
+    user_grp = request.user.groups.get()
+    return render(request, 'conference.html', {'conference_obj': conference_obj,
+                                               'category': category,
+                                               'main_category_list': main_category_list, 'order_by': order_by,
+                                               'past_conferences': past_conferences, 'user_grp':user_grp.id})
 
-    return render(request, 'conference.html',{'conference_obj':conference_obj,
-                                              'category':category,
-                                              'main_category_list':main_category_list,'url':'conferences'})
 
-def user_conferences(request):
-    user = User.objects.get(id=request.user.id)
-    print(request.user.is_authenticated)
+def user_conferences(request, past_conferences=None, category=None):
+    user = User.objects.get(id = request.user.id)
+    order_by = request.GET.get('order_by')
     if request.user.is_authenticated:
-        category = None
-        category_query_param = request.GET.get('category')
         category_obj = Category.objects.all()
-        if user.groups.filter(name = 'Chairperson').exists():
-            conference_obj = conference.objects.get(conf_ownerId=id)
-        elif user.groups.filter(name='Reviewer').exists():
-            conference_obj_item = conference_itemTable.objects.filter(Q(reviewer1_id=id) | Q(reviewer2_id=id))
-            # conference_obj = conference.objects.filter(conf_)
-            # for conference_item in conference_obj_item:
-            print(conference_obj_item)
-            # conference_obj = conference.objects.get(conf_id=conference_obj_item.conf_id_id)
-        elif user.groups.filter(name='Author').exists():
-            conference_obj = conference.objects.get(conf_ownerId=id)
+        conference_obj = {}
+        if past_conferences is None:
+            if user.groups.filter(name='Chairperson').exists():
+                conference_obj = conference.objects.filter(conf_start_date__gte=datetime.datetime.now(),
+                                                           conf_ownerId=request.user.id)
+            elif user.groups.filter(name='Reviewer').exists():
+                conference_obj_item = conference_itemTable.objects.filter(
+                    Q(reviewer1_id=request.user.id) | Q(reviewer2_id=request.user.id))
+                for conference_item in conference_obj_item:
+                    conference_obj = conference.objects.filter(conf_start_date__gte=datetime.datetime.now(),
+                                                               conf_id=conference_item.conf_id_id)
+            elif user.groups.filter(name='Author').exists():
+                conference_obj_item = conference_itemTable.objects.filter(user_id=request.user.id)
+                for conference_item in conference_obj_item:
+                    conference_obj = conference.objects.filter(conf_start_date__gte=datetime.datetime.now(),
+                                                               conf_id=conference_item.conf_id_id)
         else:
-            conference_obj = conference.objects.get(conf_ownerId=id)
-
+            if user.groups.filter(name='Chairperson').exists():
+                conference_obj = conference.objects.filter(conf_start_date__gte=datetime.datetime.now(),
+                                                           conf_ownerId=request.user.id)
+            elif user.groups.filter(name='Reviewer').exists():
+                conference_obj_item = conference_itemTable.objects.filter(
+                    Q(reviewer1_id=request.user.id) | Q(reviewer2_id=request.user.id))
+                for conference_item in conference_obj_item:
+                    conference_obj = conference.objects.filter(conf_start_date__gte=datetime.datetime.now(),
+                                                               conf_id=conference_item.conf_id_id)
+            elif user.groups.filter(name='Author').exists():
+                conference_obj_item = conference_itemTable.objects.filter(user_id=request.user.id)
+                print("inside filter", conference_obj_item)
+                for conference_item in conference_obj_item:
+                    conference_obj = conference.objects.filter(conf_start_date__gte=datetime.datetime.now(),
+                                                               conf_id=conference_item.conf_id_id)
+        main_category_list = category_obj.distinct('main_category')
+        if category is not None:
+            category_conferences_obj = category_conferences(category, order_by, conference_obj)
+            conference_obj = category_conferences_obj['conference_obj']
+            category = category_conferences_obj['category']
+        if order_by is not None:
+            conference_obj = order_conferences(order_by, conference_obj)
+        for conferences in conference_obj:
+            address_list = address.objects.annotate(location=Concat('city', V(','), 'country')).get(
+                address_id=conferences.conf_loc_id_id)
+            conferences.location = address_list.location
+            category_list = category_obj.filter(main_category=conferences.main_category,
+                                                sub_category=conferences.sub_category).first()
+            conferences.parent_category = category_list.main_category_desc
+            conferences.child_category = category_list.sub_category_desc
     else:
         return redirect('error')
-    return render(request, 'conference.html')
+    return render(request, 'conference.html', {'conference_obj': conference_obj,
+                                               'category': category,
+                                               'main_category_list': main_category_list})
+
+
+def order_conferences(order_by: object, conference_obj) -> object:
+    if order_by == 'alphabetical':
+        conference_obj = conference_obj.filter().order_by('description')
+    elif order_by == 'submission_deadline':
+        conference_obj = conference_obj.filter().order_by(
+            'conf_Submission_date')
+    elif order_by == 'conference_start_date':
+        conference_obj = conference_obj.filter().order_by(
+            'conf_start_date')
+    return conference_obj
+
+
+def category_conferences(category: int, order_by: object, conference_obj: object) -> object:
+    if order_by is not None:
+        conference_obj = order_conferences(order_by, conference_obj)
+    else:
+        conference_obj = conference_obj.filter(main_category=category)
+    category = Category.objects.distinct('main_category').get(main_category=category)
+    return {'conference_obj': conference_obj, 'category': category}
+
 
 def error(request):
-    return render(request,'error.html')
+    return render(request, 'error.html')
 
 
 def signup(request):
+    if request.method == 'POST':
+        form = UserCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            my_group = Group.objects.get(name='Author')
+            my_group.user_set.add(user)
+            login(request, user)
+            return HttpResponseRedirect("/cms/conferences/")
+    else:
+        form = UserCreateForm()
+    return render(request, 'registration/signup.html', {
+        'form': form
+    })
+
+
     if request.method == 'POST':
         form = UserCreateForm(request.POST)
         if form.is_valid():
