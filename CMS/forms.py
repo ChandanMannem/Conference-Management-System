@@ -16,5 +16,7 @@ class UserCreateForm(UserCreationForm):
             user.save()
         return user
 
-
+class  PaperListForm(forms.BaseForm):
+    paper_id = forms.IntegerField(required=True)
+    action   = forms.CharField(required=True)
 
