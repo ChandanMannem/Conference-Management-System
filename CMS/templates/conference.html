@@ -34,7 +34,7 @@
             {% for conference in conference_obj %}
             <div class="conference-card" style="width:100%">
                 <div class=" card conference-summary-block ">
-                    <a href=" {% if user_grp == 1 %}/cms/paperlist/{{conference.conf_id}}{% elif user_grp == 3 %}/cms/conf_view/{{conference.conf_id}}{% endif %}" style="text-decoration: none;">
+                    <a href=" {% if user_grp == 1 %}/cms/paperlist/{{conference.conf_id}}{% elif user_grp == 3 %}/cms/conf_view/{{conference.conf_id}}{% else %}/cms/conf_view/{{conference.conf_id}}{% endif %}" style="text-decoration: none;">
                         <div class="card-body">
                             <div class="conference-header">
                                 <div class="conference-short-name card-subtitle mb-2 text-muted">{{conference.name}}</div>

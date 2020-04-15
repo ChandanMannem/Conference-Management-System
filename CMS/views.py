@@ -1,17 +1,12 @@
 from django.db.models.functions import Concat
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
-from django.urls import reverse
-from django.db.models import CharField, Value as V
+from django.db.models import  Value as V
 from django.contrib.auth import login
 
 from .models import address,Category, conference, conference_itemTable, skill, comment
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from .forms import UserCreationForm, UserCreateForm, PaperListForm
-from django.contrib.auth.decorators import login_required
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from .forms import  UserCreateForm
 import datetime
 from django.db.models import Q
 from django.core.files.storage import FileSystemStorage
@@ -287,6 +282,7 @@ def conf_view(request, confId):
             })
         else:
             button = False
+            subtractDate = datetime.timedelta(60)
             return render(request, 'ConferenceDescription.html', {
                 'ConferenceName': conference_obj.name,
                 'ConferenceDescription': conference_obj.description,
@@ -300,7 +296,7 @@ def conf_view(request, confId):
                 'DaysDesc': DaysDesc,
                 'buttonEnable': button,
                 'sub_date': conference_obj.conf_Submission_date,
-                'acceptance_date': conference_obj.conf_Submission_date - 60
+                'acceptance_date': conference_obj.conf_Submission_date - subtractDate
             })
 
 
@@ -466,11 +462,15 @@ def conferences_view(request, past_conferences=None, category=None):
                                             sub_category=conferences.sub_category).first()
         conferences.parent_category = category_list.main_category_desc
         conferences.child_category = category_list.sub_category_desc
-    user_grp = request.user.groups.get()
+    if request.user.is_authenticated:
+        user_grp = request.user.groups.get()
+        grp_id = user_grp.id
+    else:
+        grp_id = 0
     return render(request, 'conference.html', {'conference_obj': conference_obj,
                                                'category': category,
                                                'main_category_list': main_category_list, 'order_by': order_by,
-                                               'past_conferences': past_conferences, 'user_grp':user_grp.id})
+                                               'past_conferences': past_conferences, 'user_grp':grp_id})
 
 
 def user_conferences(request, past_conferences=None, category=None):

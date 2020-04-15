@@ -81,11 +81,6 @@
             display: table;
         }
 
-        p {
-            color: #525252;
-            font-weight: 300;
-        }
-
         .conference-browse-section {
             padding: 4.5rem 0;
             text-align: center;
