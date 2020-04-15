@@ -27,7 +27,7 @@ class conference(models.Model):
     main_category               = models.IntegerField()                                 # Conference Main Category Id
     sub_category                = models.IntegerField()                                 # Conference Sub Category Id
     conf_ownerId                = models.IntegerField()                                 # Foreign Key
-    paper_Accepted              = models.IntegerField(blank=True)                      # Number of papers accepted
+    paper_Accepted              = models.IntegerField(blank=True)                       # Number of papers accepted
     conf_loc_id                 = models.ForeignKey(address, on_delete=models.CASCADE)  # Foreign Key - Conference Address Id
     conf_deadline               = models.DateField(blank=False)                         # Submission DeadLine
     description                 = models.TextField()                                    # Conference Description

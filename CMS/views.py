@@ -8,11 +8,10 @@ from django.contrib.auth import login
 from .models import address,Category, conference, conference_itemTable, skill, comment
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from .forms import UserCreationForm, UserCreateForm
+from .forms import UserCreationForm, UserCreateForm, PaperListForm
 from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import Group
 import datetime
 from django.db.models import Q
 from django.core.files.storage import FileSystemStorage
@@ -20,85 +19,199 @@ from django.core.files.storage import FileSystemStorage
 
 # Create your views here.
 def paper_view_service(request, paperId):
-    
-    if request.user.is_authenticated:
-        conference_itemTable_obj    = conference_itemTable.objects.get( paper_id = paperId)
-        conference_obj              = conference.objects.get(conf_id = conference_itemTable_obj.conf_id_id )
-        address_obj                 = address.objects.get(address_id = conference_obj.conf_loc_id_id)
-        category_obj                = Category.objects.get( main_category = conference_obj.main_category ,
-                                                            sub_category = conference_obj.sub_category )
-        comments_obj                = comment.objects.filter(paperId = paperId)
-        grp_obj = request.user.groups.get()
-        print("grp_obj-------->", grp_obj)
-        if grp_obj.id == 3:                        # Author
-            if conference_itemTable_obj.reviewer1_id == 0 and conference_itemTable_obj.reviewer2_id  == 0:
-                ResubmitButton = True
-            ActionButton   = False
-            R1_Box         = False
-            R2_Box         = False
+    paper_status = {
+        '1': 'Abstract Not Submitted!',
+        '2': 'Abstract Submitted',
+        '3': 'Reviewer Assigned',
+        '4': 'Reviewer Accepted',
+        '5': 'Abstract Accepted',
+        '6': 'Abstract Rejected',
+        '7': 'Paper Submitted'
+    }
 
-            length = len(comments_obj)
-            for item in comments_obj:
-                if(length == 1):
-                    R2_TEXT = comments_obj.comment
-                    R2_Box  = True
-                    break
-                else:
-                    R1_TEXT = comments_obj.comment
-                    length = length - 1
-                    R1_BOX = True
+    if request.method == 'POST':
+        print('Printing---------------->', request.POST)
+        conf_get_obj = conference_itemTable.objects.filter( Q(paper_id=paperId) , Q(reviewer1_id = request.user.id) | Q(reviewer2_id = request.user.id))
+        comment_obj  = comment.objects.filter(user_id_id = request.user.id, paper_id_id=paperId)
+        for list in conf_get_obj:
+            if(list.reviewer1_id == request.user.id or list.reviewer2_id == request.user.id):
+                conf_get_obj = list
+                break
+        if "action_resubmit" in request.POST:
+            print('In Resubmit')
+            uploaded_file = request.FILES['file']
+            print('Inside post function', uploaded_file)
+            fs = FileSystemStorage()
+            name = fs.save(uploaded_file.name, uploaded_file)
+            url = fs.url(name)
+            for item in conf_get_obj:
+                item.pdf_link = url
+                item.entry_date = datetime.datetime.now().date()
+                item.save()
+                break
+            page = "".join(['/cms/paperview/', str(item.paper_id)])
+            return redirect(page)
 
-        elif grp_obj.id == 2:                      # Reviewer
-            ResubmitButton = False
-            ActionButton   = True
-            R1_Box         = True
-            R2_Box         = False
-        else:                                     # Chairperson
-            ResubmitButton = False
-            ActionButton   = False
-            R1_Box = False
-            R2_Box = False
+        elif "action_accept" in request.POST:
+            print('In Action Accept')
 
-            length = len(comments_obj)
-            for item in comments_obj:
-                if (length == 1):
-                    R2_TEXT = comments_obj.comment
-                    R2_Box = True
-                    break
-                else:
-                    R1_TEXT = comments_obj.comment
-                    length = length - 1
-                    R1_BOX = True
+            if conf_get_obj.reviewer1_id == request.user.id:
+                print('Inside If condition')
+                conf_get_obj.reviewer1_status = '1'        # 1 for Accept, 2 for Reject
+                comment_obj = comment(user_id_id = request.user.id, paper_id_id   = paperId,
+                                      comment=request.POST['TextArea_1'] )
 
+            if conf_get_obj.reviewer2_id == request.user.id:
+                conf_get_obj.reviewer2_status = '1'        # 1 for Accept, 2 for Reject
+                comment_obj = comment(user_id_id=request.user.id, paper_id_id=paperId,
+                                      comment=request.POST['TextArea_1'])
 
-        days = (conference_obj.conf_start_date - datetime.datetime.now().date()).days
-        DaysDesc = ' '
-        if days >= 0:
-            DaysDesc = " ".join([str(days), 'days until the conference begins'])
+            if conf_get_obj.reviewer1_status == '1' and conf_get_obj.reviewer2_status == '1':
+                conf_get_obj.status = '4'
+
+            conf_get_obj.save()
+            comment_obj.save()
+            page = "".join(['/cms/paperview/', str(paperId)])
+            return redirect(page)
+
+        elif "action_reject" in request.POST:
+            print("Action Reject")
+            if conf_get_obj.reviewer1_id == request.user.id:
+                conf_get_obj.reviewer1_status = '2'  # 1 for Accept, 2 for Reject
+                comment_obj = comment(user_id_id=request.user.id, paper_id_id=paperId,
+                                      comment=request.POST['TextArea_1'])
+                conf_get_obj.status = '6'
+
+            if conf_get_obj.reviewer2_id == request.user.id:
+                conf_get_obj.reviewer2_status = '2'  # 1 for Accept, 2 for Reject
+                comment_obj = comment(user_id_id=request.user.id, paper_id_id=paperId,
+                                      comment=request.POST['TextArea_1'])
+                conf_get_obj.status = '6'
+
+            conf_get_obj.save()
+            comment_obj.save()
+            page = "".join(['/cms/paperview/', str(paperId)])
+            return redirect(page)
         else:
-            DaysDesc = 'This conference is ended'
-
-        print("Resubmit Button---->",ResubmitButton)
-        return render(request, 'PaperView.html', {
-            'ConferenceName'        : conference_obj.name,
-            'ConferenceDescription' : conference_obj.description,
-            'City'                  : address_obj.city,
-            'Country'               : address_obj.country,
-            'ConferenceAbout'       : conference_obj.about,
-            'Status'                : conference_itemTable_obj.status,
-            'MainCategory'          : category_obj.main_category_desc,
-            'SubCategory'           : category_obj.sub_category_desc,
-            'conf_start_date'       : conference_obj.conf_start_date,
-            'conf_end_date'         : conference_obj.conf_end_date,
-            'DaysDesc'              : DaysDesc,
-            'ResubmitButton'        : ResubmitButton,
-            'ActionButton'          : ActionButton,
-            'R1_Box'                : R1_Box,
-            'R2_Box'                : R2_Box,
-            'paper_link'            : conference_itemTable_obj.pdf_link[11:]
-        })
+            return redirect('error')
     else:
-        return HttpResponse(" Page not found !!!!")
+        if request.user.is_authenticated:
+            conference_itemTable_obj    = conference_itemTable.objects.get( paper_id = paperId)
+            conference_obj              = conference.objects.get(conf_id = conference_itemTable_obj.conf_id_id )
+            address_obj                 = address.objects.get(address_id = conference_obj.conf_loc_id_id)
+            category_obj                = Category.objects.get( main_category = conference_obj.main_category ,
+                                                                sub_category = conference_obj.sub_category )
+            comments_obj                = comment.objects.filter(paper_id_id = paperId)
+            grp_obj = request.user.groups.get()
+            print("grp_obj-------->", grp_obj.id)
+            role = grp_obj.id
+            if grp_obj.id == 3:                        # Author
+                if conference_itemTable_obj.reviewer1_id == 0 and conference_itemTable_obj.reviewer2_id  == 0:
+                    ResubmitButton = True
+                ActionButton   = False
+                R1_Box = False
+                R2_Box = False
+                R1_TEXT = ''
+                R2_TEXT = ''
+
+                length = len(comments_obj)
+                if length == 0:
+                    R2_TEXT = 'No comments from Reviewer 2 yet!'
+                    R1_TEXT = 'No comments from Reviewer 1 yet!'
+                    R1_Box = True
+                    R2_Box = True
+                else:
+                    for item in comments_obj:
+                        if (length == 1):
+                            R2_TEXT = item.comment
+                            R2_Box = True
+                            break
+                        else:
+                            R1_TEXT = item.comment
+                            length = length - 1
+                            R1_BOX = True
+
+
+            elif grp_obj.id == 2:                      # Reviewer
+                ResubmitButton = False
+                ActionButton   = False
+                R1_TEXT = ''
+                R2_TEXT = ''
+
+                # Action Button
+                if conference_itemTable_obj.reviewer1_id == request.user.id and conference_itemTable_obj.reviewer1_status == '':
+                    ActionButton   = True
+                    print('Action1')
+                if conference_itemTable_obj.reviewer2_id == request.user.id and conference_itemTable_obj.reviewer2_status == '':
+                    ActionButton   = True
+                    print('Action2')
+
+                R1_Box         = True
+                R2_Box         = False
+                comments_obj = comment.objects.filter(paper_id_id=paperId, user_id_id= request.user.id)
+                for item in comments_obj:
+                    R1_TEXT = item.comment
+                    R1_BOX = True
+                    break
+
+            else:                                     # Chairperson
+                ResubmitButton = False
+                ActionButton   = False
+                R1_Box = False
+                R2_Box = False
+                R1_TEXT = ''
+                R2_TEXT = ''
+
+                length = len(comments_obj)
+                if length == 0:
+                    R2_TEXT = 'No comments from Reviewer 2 yet!'
+                    R1_TEXT = 'No comments from Reviewer 1 yet!'
+                    R1_Box = True
+                    R2_Box = True
+                else:
+                    for item in comments_obj:
+                        if (length == 1):
+                            R2_TEXT = item.comment
+                            R2_Box = True
+                            break
+                        else:
+                            R1_TEXT = item.comment
+                            length = length - 1
+                            R1_BOX = True
+
+
+            days = (conference_obj.conf_start_date - datetime.datetime.now().date()).days
+            DaysDesc = ' '
+            if days >= 0:
+                DaysDesc = " ".join([str(days), 'days until the conference begins'])
+            else:
+                DaysDesc = 'This conference is ended'
+
+            print("Resubmit Button---->",ResubmitButton)
+            print("Action Butoon------>", ActionButton)
+            return render(request, 'PaperView.html', {
+                'ConferenceName'        : conference_obj.name,
+                'ConferenceDescription' : conference_obj.description,
+                'City'                  : address_obj.city,
+                'Country'               : address_obj.country,
+                'ConferenceAbout'       : conference_obj.about,
+                'Status'                : paper_status[conference_itemTable_obj.status],
+                'MainCategory'          : category_obj.main_category_desc,
+                'SubCategory'           : category_obj.sub_category_desc,
+                'conf_start_date'       : conference_obj.conf_start_date,
+                'conf_end_date'         : conference_obj.conf_end_date,
+                'DaysDesc'              : DaysDesc,
+                'ResubmitButton'        : ResubmitButton,
+                'ActionButton'          : ActionButton,
+                'R1_Box'                : R1_Box,
+                'R2_Box'                : R2_Box,
+                'paper_link'            : conference_itemTable_obj.pdf_link[11:],
+                'R1_TEXT'               : R1_TEXT,
+                'R2_TEXT'               : R2_TEXT,
+                'role'                  : role
+            })
+        else:
+            return redirect('error')
 
 def conf_view(request, confId):
 
@@ -148,7 +261,12 @@ def conf_view(request, confId):
             subtractDate = datetime.timedelta(60)
             button = False
             if grp_obj.id == 3:           # Author
-                button = True
+                conf_get_obj = conference_itemTable.objects.filter(user_id=request.user.id, conf_id=confId)
+                button = False
+                for item in conf_get_obj:
+                    if item.status == 1:
+                        button = True
+                        break
             else:
                 button = False
 
@@ -187,39 +305,134 @@ def conf_view(request, confId):
 
 
 def paper_list(request, confId):
+    paper_status = {
+        '1': 'Abstract Not Submitted!',
+        '2': 'Abstract Submitted',
+        '3': 'Reviewer Assigned',
+        '4': 'Reviewer Accepted',
+        '5': 'Abstract Accepted',
+        '6': 'Abstract Rejected',
+        '7': 'Paper Submitted'
+    }
 
-    grp_obj = request.user.groups.get()
-    if 1: # grp_obj.id == 1 | grp_obj.id == 2:
-        conference_obj = conference.objects.get(conf_id=confId)
-        skill_obj      = skill.objects.filter( skill_category = conference_obj.main_category )
-        action = False
-        conference_itemTable_obj = []
-        if grp_obj.id == 1:            # Chairperson
-            conference_itemTable_obj = conference_itemTable.objects.filter( conf_id_id  = confId )
-            print('---------------------------3----------------------------------------')
-            action = True
-        elif grp_obj.id == 2:          # Reviewer
-            conference_itemTable_obj = conference_itemTable.objects.filter( Q(conf_id_id  = confId), Q(reviewer1_id = request.user.id) | Q(reviewer2_id = request.user.id) )
+    if request.method == 'POST':
+        print('*****************************',request.POST)
+        if 'action_button' in request.POST:
+            conf_get_obj = conference_itemTable.objects.get(paper_id= int(request.POST['paper_id']))
+            if request.POST['action'] == '1':
+                conf_get_obj.status = '5'
+            if request.POST['action'] == '2':
+                conf_get_obj.status = '6'
+            conf_get_obj.save()
+            page = "".join(['/cms/paperlist/', str(conf_get_obj.conf_id_id)])
+            return redirect(page)
 
-        paperlist = {}
-        print('------------------------------------------------------->')
-        for item in conference_itemTable_obj:
-            paperlist['paper_id'] = item.paper_id
-            paperlist['user_id']  = item.user_id
-            paperlist['name']     = User.get_full_name()
-            paperlist['status']   = item.status
-            paperlist['entry_date'] = item.entry_date
-            paperlist['action']     = action
-            paperlist['link']       ='cms/paperview/' + item.paper_id
+        elif 'submit' in request.POST:
+            conf_get_obj = conference_itemTable.objects.get(paper_id=int(request.POST['paper_id']))
+            action = request.POST['action']
+            print('********************', len(action))
+            if len(action) == 1:
+                conf_get_obj.status = '3'
+                if conf_get_obj.reviewer1_id == 0 and conf_get_obj.reviewer2_id == 0:
+                    conf_get_obj.reviewer1_id = int(action)
+                    conf_get_obj.reviewer1_status = ''
+                    conf_get_obj.reviewer2_status = ''
+                    conf_get_obj.save()
+                else:
+                    if conf_get_obj.reviewer1_id == int(action):
+                        conf_get_obj.reviewer2_id = 0
+                        conf_get_obj.reviewer2_status = ''
+                        conf_get_obj.save()
 
-        return render(request, 'PaperList.html', {
-            'ConferenceName': conference_obj.name,
-            'ConferenceDescription': conference_obj.description,
-            'paperlist':paperlist,
-            'reviewer_list': skill_obj
-        })
+                    if conf_get_obj.reviewer2_id == int(action):
+                        conf_get_obj.reviewer1_id = 0
+                        conf_get_obj.reviewer1_status = ''
+                        conf_get_obj.save()
+            else:
+                [reviewer1, reviewer2] = action.split(',')
+                conf_get_obj.status = '3'
+                print('-----------------------------------------------------------------------------')
+                print(reviewer1, reviewer2)
+                if conf_get_obj.reviewer2_status == '' and conf_get_obj.reviewer1_status == '':
+                    print('Inside 1st if condition')
+                    conf_get_obj.reviewer1_id = int(reviewer1)
+                    conf_get_obj.reviewer2_id = int(reviewer2)
+                    print('Conference get object------>', conf_get_obj)
+                    conf_get_obj.save()
+
+                else:
+
+                    if conf_get_obj.reviewer1_status != '' and conf_get_obj.reviewer2_status == '':
+                        print('Inside else 1 condition')
+                        conf_get_obj.reviewer2_id = int(reviewer1)
+                        conf_get_obj.save()
+                    else:
+                        print('Inside else 2 condition')
+                        conf_get_obj.reviewer1_id = int(reviewer1)
+                        conf_get_obj.save()
+
+            page = "".join(['/cms/paperlist/', str(conf_get_obj.conf_id_id)])
+            return redirect(page)
+        else:
+            return redirect(error)
     else:
-        return redirect('error')
+        print('Group object')
+        grp_obj = request.user.groups.get()
+        print('Group object---->', grp_obj.id)
+        if  grp_obj.id == 1 or grp_obj.id == 2:
+            conference_obj = conference.objects.get(conf_id=confId)
+            skill_obj      = skill.objects.filter( skill_category = conference_obj.main_category )
+            action = False
+            conference_itemTable_obj = []
+            if grp_obj.id == 1:            # Chairperson
+                conference_itemTable_obj = conference_itemTable.objects.filter( conf_id_id  = confId )
+                action = True
+            elif grp_obj.id == 2:          # Reviewer
+                conference_itemTable_obj = conference_itemTable.objects.filter( Q(conf_id_id  = confId), Q(reviewer1_id = request.user.id) | Q(reviewer2_id = request.user.id) )
+
+            paperlist = []
+            for item in conference_itemTable_obj:
+                paper = {}
+                try:
+                    user_obj = User.objects.get(id = item.user_id_id)
+                    paper['name'] = " ".join([user_obj.first_name, user_obj.last_name])
+                except User.DoesNotExist:
+                    paper['name'] = " "
+
+                paper['paper_id'] = item.paper_id
+                paper['user_id']  = item.user_id_id
+                paper['status']   = paper_status[item.status]
+                paper['entry_date'] = item.entry_date
+                paper['action']     = action
+                paper['link']       ='/cms/paperview/' + str(item.paper_id)
+
+                if item.status == '5':
+                    paper['action_status'] = 1
+                    paper['action_disable'] = True
+                elif item.status == '6':
+                    paper['action_status'] = 2
+                    paper['action_disable'] = True
+                else:
+                    paper['action_status'] = 0
+                    paper['action_disable'] = False
+
+                if int(item.status) >= 4 :
+                    paper['reviewer_disable'] = True
+                else:
+                    paper['reviewer_disable'] = False
+                paper['r1'] = item.reviewer1_id
+                paper['r2'] = item.reviewer2_id
+                paperlist.append(paper)
+
+            print('PaperList--->', paperlist)
+            return render(request, 'PaperList.html', {
+                'ConferenceName': conference_obj.name,
+                'ConferenceDescription': conference_obj.description,
+                'paperlist':paperlist,
+                'reviewer_list': skill_obj
+            })
+        else:
+            return redirect(error)
 
 
 def conferences_view(request, past_conferences=None, category=None):
