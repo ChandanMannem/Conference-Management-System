@@ -39,12 +39,11 @@ def paper_view_service(request, paperId):
             fs = FileSystemStorage()
             name = fs.save(uploaded_file.name, uploaded_file)
             url = fs.url(name)
-            for item in conf_get_obj:
-                item.pdf_link = url
-                item.entry_date = datetime.datetime.now().date()
-                item.save()
-                break
-            page = "".join(['/cms/paperview/', str(item.paper_id)])
+            conf_get_obj = conference_itemTable.objects.get(paper_id = paperId, user_id_id = request.user.id)
+            conf_get_obj.pdf_link = url
+            conf_get_obj.entry_date = datetime.datetime.now().date()
+            conf_get_obj.save()
+            page = "".join(['/cms/paperview/', str(conf_get_obj.paper_id)])
             return redirect(page)
 
         elif "action_accept" in request.POST:
@@ -101,6 +100,7 @@ def paper_view_service(request, paperId):
             print("grp_obj-------->", grp_obj.id)
             role = grp_obj.id
             if grp_obj.id == 3:                        # Author
+                ResubmitButton = False
                 if conference_itemTable_obj.reviewer1_id == 0 and conference_itemTable_obj.reviewer2_id  == 0:
                     ResubmitButton = True
                 ActionButton   = False
@@ -211,11 +211,12 @@ def paper_view_service(request, paperId):
 def conf_view(request, confId):
 
     if request.method == 'POST':
-        conf_get_obj = conference_itemTable.objects.filter(user_id=request.user.id, conf_id=confId)
+        conf_item_obj = conference_itemTable.objects.filter(user_id=request.user.id, conf_id=confId)
         error = 0
-        for item in conf_get_obj:
+        for item in conf_item_obj:
             if item.pdf_link == " ":
                 error = 1
+                conf_item_obj = item
                 break;
         if error != 1:
             uploaded_file= request.FILES['file']
@@ -224,18 +225,26 @@ def conf_view(request, confId):
             name = fs.save(uploaded_file.name, uploaded_file)
             url = fs.url(name)
             # conf_get_obj = conference_itemTable.objects.filter(user_id = request.user.id, conf_id = confId )
-            if len(conf_get_obj) == 0:
+            if len(conf_item_obj) == 0:
                 conf_item_obj = conference_itemTable( user_id_id  = request.user.id, conf_id_id = confId, status = 2, description = 'Uploaded',
                                          reviewer1_id = 0, reviewer2_id= 0, pdf_link  = url, entry_date = datetime.datetime.now().date() )
+
                 conf_item_obj.save()
+                print('Inside If', conf_item_obj.paper_id)
             else:
-                for item in conf_get_obj:
+                print('Inside else', len(conf_item_obj))
+                for item in conf_item_obj:
                     item.pdf_link = url
                     item.entry_date = datetime.datetime.now().date()
-                    item.save()
+                    # item.save()
+                    conf_item_obj = item
                     break
-        page =  "".join(['/cms/paperview/', str(item.paper_id)])
-        return redirect(page)
+        # page =  "".join(['/cms/paperview/', str(item.paper_id)])
+            # print('Length of conf_item->', len(conf_item_obj))
+        if conf_item_obj.paper_id != 0:
+            return redirect('/cms/paperview/' + str(conf_item_obj.paper_id))
+        else:
+            return HttpResponse("<h1>You don't have any active papers for this conference <h1>")
     else:
 
         conference_obj = conference.objects.get(conf_id=confId)
@@ -257,11 +266,8 @@ def conf_view(request, confId):
             button = False
             if grp_obj.id == 3:           # Author
                 conf_get_obj = conference_itemTable.objects.filter(user_id=request.user.id, conf_id=confId)
-                button = False
-                for item in conf_get_obj:
-                    if item.status == 1:
-                        button = True
-                        break
+                if len(conf_get_obj) == 0:
+                    button = True
             else:
                 button = False
 
@@ -399,7 +405,6 @@ def paper_list(request, confId):
                 paper['user_id']  = item.user_id_id
                 paper['status']   = paper_status[item.status]
                 paper['entry_date'] = item.entry_date
-                paper['action']     = action
                 paper['link']       ='/cms/paperview/' + str(item.paper_id)
 
                 if item.status == '5':
@@ -425,7 +430,8 @@ def paper_list(request, confId):
                 'ConferenceName': conference_obj.name,
                 'ConferenceDescription': conference_obj.description,
                 'paperlist':paperlist,
-                'reviewer_list': skill_obj
+                'reviewer_list': skill_obj,
+                'action' : action
             })
         else:
             return redirect(error)

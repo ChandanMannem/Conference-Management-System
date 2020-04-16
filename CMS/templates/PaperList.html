@@ -101,7 +101,7 @@
                     <th data-breakpoints="xs sm">Author Name</th>
                     <th data-breakpoints="xs sm">Status</th>
                     <th data-breakpoints="xs sm">Submission Date</th>
-                    {% if list.action %}
+                    {% if action %}
                     <th data-breakpoints="xs sm">Assigned Reviewer</th>
                     <th data-breakpoints="xs sm">Action</th>
                     {% endif %}
@@ -116,7 +116,7 @@
                         <td>{{list.name}}</td>
                         <td>{{list.status}}</td>
                         <td>{{list.entry_date}}</td>
-                        {% if list.action %}
+                        {% if action %}
                         <td>
                             {% if list.reviewer_disable %}
                                 <select id="{{list.paper_id}}" class="select-state" placeholder="Select two reviewers" disabled>

@@ -2,13 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ddc134fc-2bf6-4fa0-ae04-7524c184bef2" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/CMS/static/CSS/ConferenceDescription.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMS/static/CSS/conference.css" beforeDir="false" afterPath="$PROJECT_DIR$/CMS/static/CSS/conference.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMS/templates/ConferenceDescription.html" beforeDir="false" afterPath="$PROJECT_DIR$/CMS/templates/ConferenceDescription.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMS/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/CMS/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMS/templates/conference.html" beforeDir="false" afterPath="$PROJECT_DIR$/CMS/templates/conference.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMS/templates/registration/signup.html" beforeDir="false" afterPath="$PROJECT_DIR$/CMS/templates/registration/signup.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMS/templates/PaperList.html" beforeDir="false" afterPath="$PROJECT_DIR$/CMS/templates/PaperList.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMS/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/CMS/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -81,9 +76,9 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="505" y="280" key="Github.CreateGistDialog/0.0.1366.728@0.0.1366.728" timestamp="1585376228240" />
-    <state x="379" y="188" key="com.intellij.ide.util.TipDialog" timestamp="1586889019656">
+    <state x="379" y="188" key="com.intellij.ide.util.TipDialog" timestamp="1587047441402">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="379" y="188" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1586889019656" />
+    <state x="379" y="188" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1587047441402" />
   </component>
 </project>
