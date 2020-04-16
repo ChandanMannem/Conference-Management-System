@@ -1,125 +1,55 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %} {% load static%} {% load crispy_forms_tags %} {% block content %}
 
-<head>
-
-    <!-- Bootstrap core CSS -->\
-    <link rel="stylesheet" src="{% static  'CSS/all.css' %}">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" rel="stylesheet">
-
-    <!-- FooTable Bootstrap CSS -->
-    <link rel="stylesheet" src="{% static  'CSS/footable.bootstrap.min.css' %}">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css"
-        integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
-
-    <style>
-        .row1-title {
-            margin-top: 30px;
-        }
-
-        .view-header-shortname {
-            display: block;
-            margin: 0;
-            padding-bottom: 0.5rem;
-            letter-spacing: 1px;
-            font-weight: 700;
-            font-size: 26px;
-            color: #b2b2b2;
-        }
-
-        .view-header-title {
-            width: 90%;
-            margin: 0;
-            font-size: 27px;
-            line-height: 2.2rem;
-            color: #525252;
-            font-weight: 500;
-        }
-
-        .view-header-datum {
-            font-family: "Open Sans", Verdana, sans-serif;
-            color: #555455;
-        }
-
-        .view-header {
-            position: relative;
-            background: url('{% static "Images/cream_pixels.png" %}') center;
-            width: 100%;
-            height: 100%;
-        }
-
-        h2 {
-            color: #525252;
-            font-weight: 600;
-            font-size: 1.6rem;
-            line-height: 2.4rem;
-        }
-
-        .table tbody tr td {
-            vertical-align: middle;
-        }
-
-        .connect-page {
-            padding: 10px;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="view-header" style="max-width:100%">
-        <div class='container' style="max-width:90%;">
-            <!--Row 1-->
-            <div class='row'>
-                <div class='row1-title'>
-                    <h1 class='view-header-shortname'>{{ConferenceName}}</h1>
-                    <h2 class='view-header-title'>{{ConferenceDescription}}</h2>
-                </div>
+<div class="view-header" style="max-width:100%; background:url({% static 'Images/cream_pixels.png' %})">
+    <div class='container' style="max-width:90%;">
+        <!--Row 1-->
+        <div class='row'>
+            <div class='row1-title'>
+                <h1 class='view-header-shortname'>{{ConferenceName}}</h1>
+                <h2 class='view-header-title'>{{ConferenceDescription}}</h2>
             </div>
         </div>
-        <hr>
     </div>
+    <hr>
+</div>
 
 
-    <div class="container">
-        <!-- Form -->
-        <form  method='post' enctype="multipart/form-data">
-            {% csrf_token %}
-            <button id="submit_button" type="submit" name="submit" style="display:None">Click</button>
-            <button id="action_button" type="submit" name="action_button" style="display:None">Click</button>
-            <input id = "action"   type="text" name="action" style="display:None" />
-            <input id = "paper_id" type="text" name="paper_id" style="display:None"/>
-        </form>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th data-breakpoints="xs sm">Paper ID</th>
-                    <th data-breakpoints="xs sm">Author ID</th>
-                    <th data-breakpoints="xs sm">Author Name</th>
-                    <th data-breakpoints="xs sm">Status</th>
-                    <th data-breakpoints="xs sm">Submission Date</th>
-                    {% if list.action %}
-                    <th data-breakpoints="xs sm">Assigned Reviewer</th>
-                    <th data-breakpoints="xs sm">Action</th>
-                    {% endif %}
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for list in paperlist %}
-                <tr>
-                        <td>{{list.paper_id}}</td>
-                        <td>{{list.user_id}}</td>
-                        <td>{{list.name}}</td>
-                        <td>{{list.status}}</td>
-                        <td>{{list.entry_date}}</td>
-                        {% if list.action %}
-                        <td>
-                            {% if list.reviewer_disable %}
-                                <select id="{{list.paper_id}}" class="select-state" placeholder="Select two reviewers" disabled>
+<div class="container">
+    <!-- Form -->
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        <button id="submit_button" type="submit" name="submit" style="display:None">Click</button>
+        <button id="action_button" type="submit" name="action_button" style="display:None">Click</button>
+        <input id="action" type="text" name="action" style="display:None" />
+        <input id="paper_id" type="text" name="paper_id" style="display:None" />
+    </form>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th data-breakpoints="xs sm">Paper ID</th>
+                <th data-breakpoints="xs sm">Author ID</th>
+                <th data-breakpoints="xs sm">Author Name</th>
+                <th data-breakpoints="xs sm">Status</th>
+                <th data-breakpoints="xs sm">Submission Date</th>
+                {% if list.action %}
+                <th data-breakpoints="xs sm">Assigned Reviewer</th>
+                <th data-breakpoints="xs sm">Action</th>
+                {% endif %}
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for list in paperlist %}
+            <tr>
+                <td>{{list.paper_id}}</td>
+                <td>{{list.user_id}}</td>
+                <td>{{list.name}}</td>
+                <td>{{list.status}}</td>
+                <td>{{list.entry_date}}</td>
+                {% if list.action %}
+                <td>
+                    {% if list.reviewer_disable %}
+                    <select id="{{list.paper_id}}" class="select-state" placeholder="Select two reviewers" disabled>
                             {% else %}
                                 <select id="{{list.paper_id}}" class="select-state" placeholder="Select two reviewers" >
                             {% endif%}
@@ -132,10 +62,10 @@
                                     {% endif %}
                                 {% endfor %}
                             </select>
-                        </td>
-                        <td>
-                            {% if list.action_disable %}
-                                <select id="{{list.paper_id}}-status" class="select-status" placeholder="Select Status" disabled>
+                </td>
+                <td>
+                    {% if list.action_disable %}
+                    <select id="{{list.paper_id}}-status" class="select-status" placeholder="Select Status" disabled>
                             {% else %}
                                 <select id="{{list.paper_id}}-status" class="select-status" placeholder="Select Status" >
                             {% endif%}
@@ -158,38 +88,18 @@
                                 <option value="2">Reject</option>
                                 {% endif %}
                             </select>
-                        </td>
-                        {% endif %}
-                        <td> <a href= {{list.link}} class="connect-page"
-                                target="blank"><i class="fas fa-chevron-circle-right" id="row1_button"></i></a>
-                        </td>
-                </tr>
-                {% endfor %}
-            </tbody>
+                    </select>
+                </td>
+                {% endif %}
+                <td> <a href={ {list.link}} class="connect-page" target="blank"><i class="fas fa-chevron-circle-right" id="row1_button"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
 
-        </table>
-
-
-    </div> <!-- /container -->
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"
-        integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="docs/js/ie10-viewport-bug-workaround.js"></script>
-    <!-- Add in any FooTable dependencies we may need -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
-    <!-- Add in FooTable itself -->
-    <script src="{% static 'JS/paperlist.js' %}"> </script>
-    <script src="{% static 'JS/footable.js' %}"> </script>
-    <script src="{% static 'JS/all.js' %}"> </script>
-    <script src="{% static 'JS/selectize.js' %}"> </script>
+    </table>
 
 
-
-</body>
-
-</html>
+</div>
+{% endblock %}
+<!-- /container -->

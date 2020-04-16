@@ -1,0 +1,311 @@
+
+        .desc-row1-title {
+            margin-top: 30px;
+        }
+
+        .desc-view-header-shortname {
+            display: block;
+            margin: 0;
+            padding-bottom: 0.5rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            font-size: 26px;
+            color: #b2b2b2;
+        }
+
+        .desc-view-header-title {
+            width: 90%;
+            margin: 0;
+            font-size: 27px;
+            line-height: 2.2rem;
+            color: #525252;
+            font-weight: 500;
+        }
+
+        .desc-view-header-datum {
+            font-family: "Open Sans", Verdana, sans-serif;
+            color: #555455;
+        }
+
+        h2 {
+            color: #525252;
+            font-weight: 600;
+            font-size: 1.6rem;
+            line-height: 2.4rem;
+        }
+
+        .table {
+            display: table;
+            width: 58%;
+            border: 1px solid #e7e7e7;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            border-radius: 3px;
+        }
+
+        .table .table-cell {
+            display: table-cell;
+            width: 17%;
+            padding: .5rem 0 .5rem 1rem;
+            font-size: .9rem;
+            color: #525252;
+            border-bottom: solid 1px #e7e7e7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .table .info {
+            width: 30%;
+        }
+
+        .table .title {
+            border-right: solid 1px #e7e7e7;
+        }
+
+        .desc-list-title {
+            border-bottom: 1px solid #e7e7e7;
+            font-family: "Open Sans", Verdana, sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            text-transform: uppercase;
+            color: #525252;
+            line-height: 1.5rem;
+        }
+
+        .desc-interest-widget-container {
+            display: inline-block;
+            box-shadow: 0 1px 8px 0 rgba(0, 0, 0, .06);
+            /* overflow: hidden; */
+            width: 100%;
+            /* max-width: 300px;*/
+        }
+
+        .desc-interest-widget-container .desc-interest-widget-item {
+            position: relative;
+            float: left;
+            padding: 0.5rem 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            color: #575757;
+            width: 100%;
+            min-height: 39px;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-background-clip: padding;
+            -webkit-background-clip: padding-box;
+            background-clip: padding-box;
+            border: 1px solid #d9d9d9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .desc-interest-widget-container .desc-interest-widget-item h3 {
+            font-size: .9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+        }
+
+        .desc-interest-widget-container .desc-interest-widget-item:after,
+        .desc-interest-widget-container .desc-interest-widget-item:before {
+            content: " ";
+            display: table;
+        }
+
+
+        p {
+            color: #525252;
+            font-weight: 300;
+        }
+
+        /* Set the size of the div element that contains the map */
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .desc-view-header {
+            position: relative;
+            background: url('{% static "Images/cream_pixels.png" %}') center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .buttonSubmit {
+            background: #60a45f;
+            border: 1px solid #60a45f;
+            color: white !important;
+        }
+
+        .buttonSubmit:hover {
+            background: white;
+            border: 1px solid #60a45f;
+            color: #60a45f !important;
+            cursor: pointer;
+        }
+
+        .modal-open {
+            overflow: hidden
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1050;
+            display: none;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+            outline: 0;
+            opacity:1 !important;
+        }
+
+        .modal.fade .modal-dialog {
+            -webkit-transform: translate(0, -25%);
+            -ms-transform: translate(0, -25%);
+            -o-transform: translate(0, -25%);
+            transform: translate(0, -25%);
+            -webkit-transition: -webkit-transform .3s ease-out;
+            -o-transition: -o-transform .3s ease-out;
+            transition: -webkit-transform .3s ease-out;
+            transition: transform .3s ease-out;
+            transition: transform .3s ease-out, -webkit-transform .3s ease-out, -o-transform .3s ease-out
+        }
+
+        .modal.in .modal-dialog {
+            -webkit-transform: translate(0, 0);
+            -ms-transform: translate(0, 0);
+            -o-transform: translate(0, 0);
+            transform: translate(0, 0)
+        }
+
+        .modal-open .modal {
+            overflow-x: hidden;
+            overflow-y: auto
+        }
+
+        .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 10px
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #999;
+            border: 1px solid rgba(0, 0, 0, .2);
+            border-radius: 6px;
+            -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
+            box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
+            outline: 0
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1040;
+            background-color: #000
+        }
+
+        .modal-backdrop.fade {
+            filter: alpha(opacity=0);
+            opacity: 0
+        }
+
+        .modal-backdrop.in {
+            filter: alpha(opacity=50);
+            opacity: .5
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #e5e5e5
+        }
+
+        .modal-header .close {
+            margin-top: -2px
+        }
+
+        .modal-title {
+            margin: 0;
+            line-height: 1.42857143
+        }
+
+        .modal-body {
+            position: relative;
+            padding: 15px
+        }
+
+        .modal-footer {
+            padding: 15px;
+            text-align: right;
+            border-top: 1px solid #e5e5e5
+        }
+
+        .modal-footer .btn+.btn {
+            margin-bottom: 0;
+            margin-left: 5px
+        }
+
+        .modal-footer .btn-group .btn+.btn {
+            margin-left: -1px
+        }
+
+        .modal-footer .btn-block+.btn-block {
+            margin-left: 0
+        }
+
+        .modal-scrollbar-measure {
+            position: absolute;
+            top: -9999px;
+            width: 50px;
+            height: 50px;
+            overflow: scroll
+        }
+
+        @media (min-width:768px) {
+            .modal-dialog {
+                width: 600px;
+                margin: 30px auto
+            }
+            .modal-content {
+                -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, .5);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, .5)
+            }
+            .modal-sm {
+                width: 300px
+            }
+        }
+
+        @media (min-width:992px) {
+            .modal-lg {
+                width: 900px
+            }
+        }
+
+        .modal-footer:after,
+        .modal-footer:before,
+        .modal-header:after,
+        .modal-header:before{
+            display: table;
+            content: " "
+        }
+
+        .modal-footer:after,
+        .modal-header:after{
+            clear: both
+        }
