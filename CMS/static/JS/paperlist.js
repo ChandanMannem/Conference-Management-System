@@ -1,16 +1,19 @@
         jQuery(function ($) {
-            $('.table').footable({
-                "paging": {
-                    "enabled": true
-                },
-                "filtering": {
-                    "enabled": true
-                },
-                "sorting": {
-                    "enabled": true
-                }
-            });
+
             $(document).ready(function () {
+
+                $('.table').footable({
+                    "paging": {
+                        "enabled": true
+                    },
+                    "filtering": {
+                        "enabled": true
+                    },
+                    "sorting": {
+                        "enabled": true
+                    }
+                });
+
                 $('.select-state').selectize({
                     maxItems: 2,
                     onChange: function(value) {
@@ -20,6 +23,7 @@
                            $("#action").val(value);
                      },
                      onBlur: function(){
+
                           $("#submit_button").click();
                      }
                 });

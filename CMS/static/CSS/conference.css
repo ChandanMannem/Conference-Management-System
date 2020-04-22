@@ -1,11 +1,10 @@
        a{
             text-decoration: none;
        }
-        .conference-view-header {
+        .conferenc-view-header {
             position: relative;
             background: url('{% static "Images/cream_pixels.png" %}');
             width: 100%;
-            height: 100%;
         }
         .conference-row1-title {
             margin-top: 50px;

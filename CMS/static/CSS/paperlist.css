@@ -1,0 +1,50 @@
+ .paperlist-row1-title {
+     margin-top: 30px;
+ }
+ 
+ .paperlist-view-header-shortname {
+     display: block;
+     margin: 0;
+     padding-bottom: 0.5rem;
+     letter-spacing: 1px;
+     font-weight: 700;
+     font-size: 26px;
+     color: #b2b2b2;
+ }
+ 
+ .paperlist-view-header-title {
+     width: 90%;
+     margin: 0;
+     font-size: 27px;
+     line-height: 2.2rem;
+     color: #525252;
+     font-weight: 500;
+ }
+ 
+ .paperlist-view-header-datum {
+     font-family: "Open Sans", Verdana, sans-serif;
+     color: #555455;
+ }
+ 
+ .paperlistview-header {
+     position: relative;
+     background: url('{% static "Images/cream_pixels.png" %}') center;
+     width: 100%;
+ }
+ 
+ h2 {
+     color: #525252;
+     font-weight: 600;
+     font-size: 1.6rem;
+     line-height: 2.4rem;
+ }
+ 
+ .table tbody tr td {
+     vertical-align: middle;
+ }
+ 
+ .connect-page {
+     padding: 10px;
+ }
+
+ .footable-filtering-search{ diplay:none !important}

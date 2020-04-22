@@ -19,7 +19,8 @@ urlpatterns = [
     path('error/', views.error, name='error'),
     path('CreateData/', views.Create_data),
     path('conf_view/<int:confId>', views.conf_view, name='conf_view'),
-    path('paperlist/<int:confId>', views.paper_list, name='paperlist')
+    path('paperlist/<int:confId>', views.paper_list, name='paperlist'),
+    path('paper_redirect/<int:conf_id>',views.paper_redirect, name='paper_redirect'),
 ]
 
 if settings.DEBUG:

@@ -99,10 +99,17 @@ def paper_view_service(request, paperId):
             grp_obj = request.user.groups.get()
             print("grp_obj-------->", grp_obj.id)
             role = grp_obj.id
+            uploadButtonDisplay = False
             if grp_obj.id == 3:                        # Author
                 ResubmitButton = False
+
                 if conference_itemTable_obj.reviewer1_id == 0 and conference_itemTable_obj.reviewer2_id  == 0:
                     ResubmitButton = True
+
+                if conference_itemTable_obj.status =='5':
+                    ResubmitButton = True
+                    uploadButtonDisplay = True
+
                 ActionButton   = False
                 R1_Box = False
                 R2_Box = False
@@ -203,7 +210,8 @@ def paper_view_service(request, paperId):
                 'paper_link'            : conference_itemTable_obj.pdf_link[11:],
                 'R1_TEXT'               : R1_TEXT,
                 'R2_TEXT'               : R2_TEXT,
-                'role'                  : role
+                'role'                  : role,
+                'uploadButtonDisplay'   : uploadButtonDisplay
             })
         else:
             return redirect('error')
@@ -390,8 +398,12 @@ def paper_list(request, confId):
                 conference_itemTable_obj = conference_itemTable.objects.filter( conf_id_id  = confId )
                 action = True
             elif grp_obj.id == 2:          # Reviewer
+                print('Conf ID', confId)
+                print('User Id', request.user.id)
                 conference_itemTable_obj = conference_itemTable.objects.filter( Q(conf_id_id  = confId), Q(reviewer1_id = request.user.id) | Q(reviewer2_id = request.user.id) )
 
+            print(len(conference_itemTable_obj))
+            print('Skill Obj', skill_obj)
             paperlist = []
             for item in conference_itemTable_obj:
                 paper = {}
@@ -406,7 +418,7 @@ def paper_list(request, confId):
                 paper['status']   = paper_status[item.status]
                 paper['entry_date'] = item.entry_date
                 paper['link']       ='/cms/paperview/' + str(item.paper_id)
-
+                print('ConfId', paper['link'])
                 if item.status == '5':
                     paper['action_status'] = 1
                     paper['action_disable'] = True
@@ -468,15 +480,11 @@ def conferences_view(request, past_conferences=None, category=None):
                                             sub_category=conferences.sub_category).first()
         conferences.parent_category = category_list.main_category_desc
         conferences.child_category = category_list.sub_category_desc
-    if request.user.is_authenticated:
-        user_grp = request.user.groups.get()
-        grp_id = user_grp.id
-    else:
-        grp_id = 0
+
     return render(request, 'conference.html', {'conference_obj': conference_obj,
                                                'category': category,
                                                'main_category_list': main_category_list, 'order_by': order_by,
-                                               'past_conferences': past_conferences, 'user_grp':grp_id})
+                                               'past_conferences': past_conferences})
 
 
 def user_conferences(request, past_conferences=None, category=None):
@@ -549,9 +557,34 @@ def order_conferences(order_by: object, conference_obj) -> object:
             'conf_start_date')
     return conference_obj
 
+def paper_redirect(request, conf_id= None):
+    if request.user.is_authenticated:
+        user_grp = request.user.groups.get()
+        if user_grp.id == 1 or user_grp.id == 2:
+            page = "".join(['/cms/paperlist/', str(conf_id)])
+            return redirect(page)
+        else:
+
+            try:
+                status_obj = conference_itemTable.objects.get(user_id=request.user.id, conf_id_id=conf_id)
+                status = status_obj.status
+            except conference_itemTable.DoesNotExist:
+                status = '0'
+
+            if status == '0' or status == '1' or status == '':
+                page = "".join(['/cms/conf_view/', str(conf_id)])
+                return redirect(page)
+            else:
+                paper_id= conference_itemTable.objects.get(user_id=request.user.id, conf_id_id=conf_id).paper_id
+                page = "".join(['/cms/paperview/', str(paper_id)])
+                return redirect(page)
+    else:
+        page = "".join(['/cms/conf_view/', str(conf_id)])
+        return redirect(page)
 
 def category_conferences(category: int, order_by: object, conference_obj: object) -> object:
     if order_by is not None:
+        conference_obj = conference_obj.filter(main_category=category)
         conference_obj = order_conferences(order_by, conference_obj)
     else:
         conference_obj = conference_obj.filter(main_category=category)
